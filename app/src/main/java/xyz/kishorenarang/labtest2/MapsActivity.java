@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener , GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener, GestureDetector.OnDoubleTapListener, GoogleMap.OnMarkerClickListener {
+public class MapsActivity extends FragmentActivity implements GoogleMap.OnMapLongClickListener, OnMapReadyCallback, GoogleMap.OnMapClickListener , GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener, GestureDetector.OnDoubleTapListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     Polygon p;
@@ -68,6 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setOnMapLongClickListener(this);
         mMap.setOnMapClickListener(this);
         // Add a marker in Sydney and move the camera
         mMap.animateCamera( CameraUpdateFactory.zoomTo( 4.0f ) );
@@ -104,7 +105,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         IconGenerator iconGen = new IconGenerator(this);
         MarkerOptions markerOptions = new MarkerOptions().
-                icon(BitmapDescriptorFactory.fromBitmap(iconGen.makeIcon(allDistance+" KMS"))).
+                icon(BitmapDescriptorFactory.fromBitmap(iconGen.makeIcon(Math.round(allDistance)+" KMS"))).
                 position(midPoint).anchor(iconGen.getAnchorU(), iconGen.getAnchorV());
         this.marks.add(mMap.addMarker(markerOptions));
     }
@@ -134,7 +135,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             drawDistance(mol.get(mol.size()-2),mol.get(mol.size()-1));
 
         }
-        if(mol.size()==5)
+        if(mol.size()==5 || longPressed)
         {
             //ll.add(ll.get(0));
 
@@ -343,4 +344,13 @@ polyline.remove();
         }
         allDistance = 0;
     }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+       // mol.add(mol.get(0));
+        longPressed = true;
+        reload();
+    }
+
+    boolean longPressed = false;
 }

@@ -31,7 +31,9 @@ import java.util.List;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener , GoogleMap.OnPolylineClickListener, GoogleMap.OnPolygonClickListener, GestureDetector.OnDoubleTapListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
-
+    Polygon p;
+    List<Polyline> pl =  new ArrayList<Polyline>();
+    List<Marker> marks = new ArrayList<Marker>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +47,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     private List<LatLng> ll = new ArrayList<LatLng>();
+
 
 
     double allDistance = 0;
@@ -73,6 +76,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         mMap.setOnPolylineClickListener(this);
         mMap.getUiSettings().setZoomGesturesEnabled(false);
+        mMap.getUiSettings().setZoomControlsEnabled(true);
+        mMap.getUiSettings().setCompassEnabled(true);
         mMap.setOnMarkerClickListener(this);
         //mMap.getUiSettings().ges
     }
@@ -89,12 +94,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MarkerOptions markerOptions = new MarkerOptions().
                 icon(BitmapDescriptorFactory.fromBitmap(iconGen.makeIcon(distance(p1.getPosition().latitude, p1.getPosition().longitude, p2.getPosition().latitude, p2.getPosition().longitude)+" KMS"))).
                 position(midPoint).anchor(iconGen.getAnchorU(), iconGen.getAnchorV());
-        mMap.addMarker(markerOptions);
+        this.marks.add(mMap.addMarker(markerOptions));
     }
 
 
+    private void drawCenter(LatLng midPoint)
+    {
+        //LatLng midPoint = midPoint(p1.getPosition().latitude, p1.getPosition().longitude, p2.getPosition().latitude, p2.getPosition().longitude);
 
-    private LatLng getPolygonCenterPoint(ArrayList<MarkerOptions> polygonPointsList){
+        IconGenerator iconGen = new IconGenerator(this);
+        MarkerOptions markerOptions = new MarkerOptions().
+                icon(BitmapDescriptorFactory.fromBitmap(iconGen.makeIcon(allDistance+" KMS"))).
+                position(midPoint).anchor(iconGen.getAnchorU(), iconGen.getAnchorV());
+        this.marks.add(mMap.addMarker(markerOptions));
+    }
+
+
+    private LatLng getPolygonCenterPoint(List<MarkerOptions> polygonPointsList){
         LatLng centerLatLng = null;
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(int i = 0 ; i < polygonPointsList.size() ; i++)
@@ -138,7 +154,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 po.add(((MarkerOptions) i.next()).getPosition());
             }
-            Polygon p = mMap.addPolygon(po);
+
+            p = mMap.addPolygon(po);
         }
     }
 
@@ -234,6 +251,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         Polyline pl = mMap.addPolyline(po);
+        this.pl.add(pl);
     }
     private LatLng[] getLatLng()
     {
@@ -248,13 +266,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onPolygonClick(Polygon polygon) {
 
-
+    polygon.remove();
 
     }
 
     @Override
     public void onPolylineClick(Polyline polyline) {
-
+polyline.remove();
     }
 
     @Override
@@ -280,6 +298,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         marker.remove();
 
+        removeFromMap(marker);
+
         return false;
+    }
+
+    private void removeFromMap(Marker marker)
+    {
+        if(mol.size() == 6)
+        {
+            mol.remove(5);
+        }
+        else
+        {
+          //  mol.remove(marker);
+        }
+        for(int i=0;i<mol.size();i++)
+        {
+            if(mol.get(i).getPosition().latitude == marker.getPosition().latitude && mol.get(i).getPosition().longitude == marker.getPosition().longitude )
+            {
+                mol.remove(i);
+
+                if(p!=null)
+                {
+                    p.remove();
+                }
+                removeAll();
+                reload();
+                break;
+            }
+        }
+    }
+
+    private void removeAll()
+    {
+        for (int i=0;i<pl.size();i++)
+        {
+            pl.get(i).remove();
+        }
+
+        for (int i=0;i<marks.size();i++)
+        {
+            marks.get(i).remove();
+        }
+        allDistance = 0;
     }
 }
